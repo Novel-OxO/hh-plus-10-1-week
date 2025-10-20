@@ -24,6 +24,52 @@ describe('PointController (Integration)', () => {
     await app.close();
   });
 
+  describe('GET /point/:id', () => {
+    describe('성공 케이스', () => {
+      it('특정 유저의 포인트를 조회할 수 있다', async () => {
+        // given
+        const userId = 1;
+
+        // when
+        const response = await request(app.getHttpServer()).get(`/point/${userId}`).expect(200);
+
+        // then
+        expect(response.body).toHaveProperty('id', userId);
+        expect(response.body).toHaveProperty('point');
+        expect(response.body).toHaveProperty('updateMillis');
+        expect(typeof response.body.point).toBe('number');
+        expect(response.body.point).toBeGreaterThanOrEqual(0);
+      });
+
+      it('포인트를 충전한 후 조회하면 충전된 포인트를 확인할 수 있다', async () => {
+        // given
+        const userId = 2;
+        const chargeAmount = 1000;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        const response = await request(app.getHttpServer()).get(`/point/${userId}`).expect(200);
+
+        // then
+        expect(response.body.id).toBe(userId);
+        expect(response.body.point).toBeGreaterThanOrEqual(chargeAmount);
+      });
+
+      it('충전하지 않은 유저의 포인트는 0이다', async () => {
+        // given
+        const userId = 999;
+
+        // when
+        const response = await request(app.getHttpServer()).get(`/point/${userId}`).expect(200);
+
+        // then
+        expect(response.body.id).toBe(userId);
+        expect(response.body.point).toBe(0);
+      });
+    });
+  });
+
   describe('PATCH /point/:id/charge', () => {
     describe('성공 케이스', () => {
       it('포인트를 충전할 수 있다', async () => {
