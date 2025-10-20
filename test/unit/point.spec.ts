@@ -108,7 +108,7 @@ describe('Point', () => {
       expect(result.amount).toBe(100); // 10000 * 0.01 = 100
     });
 
-    it('곱셈 결과가 100원 단위가 아니면 내림 처리된다', () => {
+    it('곱셈 결과가 정수가 아니면 내림 처리된다', () => {
       // given
       const point = new Point(1500);
       const rate = 0.01;
@@ -117,7 +117,7 @@ describe('Point', () => {
       const result = point.multiply(rate);
 
       // then
-      expect(result.amount).toBe(0); // 1500 * 0.01 = 15 -> 0으로 내림
+      expect(result.amount).toBe(15); // 1500 * 0.01 = 15
     });
   });
 });

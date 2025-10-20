@@ -1,18 +1,26 @@
+import { ValidationException } from '@/models/exception/validation.exception';
+
 export class Point {
-  constructor(readonly amount: number) {}
+  constructor(readonly amount: number) {
+    if (!Number.isInteger(amount)) {
+      throw new ValidationException('포인트는 정수만 가능합니다');
+    }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  add(_other: Point): Point {
-    return new Point(0);
+    if (!Number.isSafeInteger(amount)) {
+      throw new ValidationException('포인트 금액이 안전한 정수 범위를 벗어났습니다');
+    }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  subtract(_other: Point): Point {
-    return new Point(0);
+  add(other: Point): Point {
+    return new Point(this.amount + other.amount);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  multiply(_rate: number): Point {
-    return new Point(0);
+  subtract(other: Point): Point {
+    return new Point(this.amount - other.amount);
+  }
+
+  multiply(rate: number): Point {
+    const result = this.amount * rate;
+    return new Point(Math.floor(result));
   }
 }
