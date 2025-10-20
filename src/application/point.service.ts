@@ -1,3 +1,5 @@
+import { Mutex } from 'async-mutex';
+
 import { Injectable } from '@nestjs/common';
 
 import { PointHandler } from '@/application/point-handler';
@@ -12,11 +14,20 @@ import { RewardPolicy } from '@/models/reward/reward-policy';
 
 @Injectable()
 export class PointService {
+  private readonly userMutexes: Map<number, Mutex> = new Map();
+
   constructor(
     private readonly userPointTable: UserPointTable,
     private readonly historyTable: PointHistoryTable,
     private readonly pointHandler: PointHandler,
   ) {}
+
+  private getUserMutex(userId: number): Mutex {
+    if (!this.userMutexes.has(userId)) {
+      this.userMutexes.set(userId, new Mutex());
+    }
+    return this.userMutexes.get(userId)!;
+  }
 
   /**
    * 포인트 충전
@@ -31,16 +42,19 @@ export class PointService {
       throw new ValidationException('100원 단위로만 충전할 수 있습니다');
     }
 
-    const currentUserPoint = await this.userPointTable.selectById(userId);
+    const mutex = this.getUserMutex(userId);
+    return await mutex.runExclusive(async () => {
+      const currentUserPoint = await this.userPointTable.selectById(userId);
 
-    const wallet = new PointWallet(userId, new Point(currentUserPoint.point));
-    const result = this.pointHandler.charge(wallet, amount, rewardPolicy);
+      const wallet = new PointWallet(userId, new Point(currentUserPoint.point));
+      const result = this.pointHandler.charge(wallet, amount, rewardPolicy);
 
-    const updatedUserPoint = await this.userPointTable.insertOrUpdate(userId, result.wallet.balance.amount);
+      const updatedUserPoint = await this.userPointTable.insertOrUpdate(userId, result.wallet.balance.amount);
 
-    await this.historyTable.insert(userId, amount.amount, TransactionType.CHARGE, updatedUserPoint.updateMillis);
+      await this.historyTable.insert(userId, amount.amount, TransactionType.CHARGE, updatedUserPoint.updateMillis);
 
-    return updatedUserPoint;
+      return updatedUserPoint;
+    });
   }
 
   /**
@@ -65,26 +79,29 @@ export class PointService {
       throw new ValidationException('100원 단위로만 사용할 수 있습니다');
     }
 
-    const currentUserPoint = await this.userPointTable.selectById(userId);
+    const mutex = this.getUserMutex(userId);
+    return await mutex.runExclusive(async () => {
+      const currentUserPoint = await this.userPointTable.selectById(userId);
 
-    const wallet = new PointWallet(userId, new Point(currentUserPoint.point));
-    const result = this.pointHandler.use(wallet, amount, rewardPolicy || new OnePercentRewardPolicy());
+      const wallet = new PointWallet(userId, new Point(currentUserPoint.point));
+      const result = this.pointHandler.use(wallet, amount, rewardPolicy || new OnePercentRewardPolicy());
 
-    const updatedUserPoint = await this.userPointTable.insertOrUpdate(userId, result.wallet.balance.amount);
+      const updatedUserPoint = await this.userPointTable.insertOrUpdate(userId, result.wallet.balance.amount);
 
-    await this.historyTable.insert(userId, amount.amount, TransactionType.USE, updatedUserPoint.updateMillis);
+      await this.historyTable.insert(userId, amount.amount, TransactionType.USE, updatedUserPoint.updateMillis);
 
-    // 보상이 있다면 보상 히스토리도 저장
-    if (result.reward.isPositive()) {
-      await this.historyTable.insert(
-        userId,
-        result.reward.amount,
-        TransactionType.REWARD,
-        updatedUserPoint.updateMillis,
-      );
-    }
+      // 보상이 있다면 보상 히스토리도 저장
+      if (result.reward.isPositive()) {
+        await this.historyTable.insert(
+          userId,
+          result.reward.amount,
+          TransactionType.REWARD,
+          updatedUserPoint.updateMillis,
+        );
+      }
 
-    return updatedUserPoint;
+      return updatedUserPoint;
+    });
   }
 
   /**
