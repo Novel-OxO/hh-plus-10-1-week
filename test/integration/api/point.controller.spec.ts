@@ -197,4 +197,147 @@ describe('PointController (Integration)', () => {
       });
     });
   });
+
+  describe('PATCH /point/:id/use', () => {
+    describe('성공 케이스', () => {
+      it('포인트를 사용할 수 있다', async () => {
+        // given
+        const userId = 3;
+        const chargeAmount = 10000;
+        const useAmount = 1000;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        const response = await request(app.getHttpServer())
+          .patch(`/point/${userId}/use`)
+          .send({ amount: useAmount })
+          .expect(200);
+
+        // then
+        expect(response.body).toHaveProperty('id', userId);
+        expect(response.body).toHaveProperty('point');
+        expect(response.body).toHaveProperty('updateMillis');
+        expect(response.body.point).toBeLessThan(chargeAmount);
+      });
+
+      it('100원 단위로 사용할 수 있다', async () => {
+        // given
+        const userId = 4;
+        const chargeAmount = 10000;
+        const useAmount = 500;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        const response = await request(app.getHttpServer())
+          .patch(`/point/${userId}/use`)
+          .send({ amount: useAmount })
+          .expect(200);
+
+        // then
+        expect(response.body.point).toBeGreaterThanOrEqual(0);
+      });
+
+      it('여러 번 사용하면 잔액이 차감된다', async () => {
+        // given
+        const userId = 5;
+        const chargeAmount = 10000;
+        const firstUse = 1000;
+        const secondUse = 500;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        await request(app.getHttpServer()).patch(`/point/${userId}/use`).send({ amount: firstUse }).expect(200);
+
+        const response = await request(app.getHttpServer())
+          .patch(`/point/${userId}/use`)
+          .send({ amount: secondUse })
+          .expect(200);
+
+        // then
+        expect(response.body).toHaveProperty('point');
+        expect(response.body.point).toBeLessThan(chargeAmount);
+      });
+    });
+
+    describe('실패 케이스', () => {
+      it('100원 단위가 아니면 사용할 수 없다', async () => {
+        // given
+        const userId = 6;
+        const chargeAmount = 10000;
+        const invalidAmount = 150; // 100원 단위가 아님
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        // then
+        await request(app.getHttpServer()).patch(`/point/${userId}/use`).send({ amount: invalidAmount }).expect(400);
+      });
+
+      it('음수 금액으로 사용할 수 없다', async () => {
+        // given
+        const userId = 7;
+        const chargeAmount = 10000;
+        const negativeAmount = -1000;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        // then
+        await request(app.getHttpServer()).patch(`/point/${userId}/use`).send({ amount: negativeAmount }).expect(400);
+      });
+
+      it('0원을 사용할 수 없다', async () => {
+        // given
+        const userId = 8;
+        const chargeAmount = 10000;
+        const zeroAmount = 0;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        // then
+        await request(app.getHttpServer()).patch(`/point/${userId}/use`).send({ amount: zeroAmount }).expect(400);
+      });
+
+      it('잔액이 부족하면 사용할 수 없다', async () => {
+        // given
+        const userId = 9;
+        const chargeAmount = 500;
+        const useAmount = 1000;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        // then
+        await request(app.getHttpServer()).patch(`/point/${userId}/use`).send({ amount: useAmount }).expect(400);
+      });
+
+      it('사용 금액이 누락되면 사용할 수 없다', async () => {
+        // given
+        const userId = 10;
+        const chargeAmount = 10000;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        // then
+        await request(app.getHttpServer()).patch(`/point/${userId}/use`).send({}).expect(400);
+      });
+
+      it('사용 금액이 숫자가 아니면 사용할 수 없다', async () => {
+        // given
+        const userId = 11;
+        const chargeAmount = 10000;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        // then
+        await request(app.getHttpServer()).patch(`/point/${userId}/use`).send({ amount: 'invalid' }).expect(400);
+      });
+    });
+  });
 });
