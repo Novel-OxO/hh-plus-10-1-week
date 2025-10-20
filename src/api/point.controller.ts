@@ -1,16 +1,13 @@
 import { Body, Controller, Get, Param, Patch, ValidationPipe } from '@nestjs/common';
 
-import { PointHistoryTable } from '@/database/pointhistory.table';
-import { UserPointTable } from '@/database/userpoint.table';
+import { PointService } from '@/application/point.service';
 import { PointBody as PointDto } from '@/models/point.dto';
 import { PointHistory, UserPoint } from '@/models/point.model';
+import { Point } from '@/models/point/point';
 
 @Controller('/point')
 export class PointController {
-  constructor(
-    private readonly userDb: UserPointTable,
-    private readonly historyDb: PointHistoryTable,
-  ) {}
+  constructor(private readonly pointService: PointService) {}
 
   /**
    * TODO - 특정 유저의 포인트를 조회하는 기능을 작성해주세요.
@@ -37,8 +34,8 @@ export class PointController {
   @Patch(':id/charge')
   async charge(@Param('id') id, @Body(ValidationPipe) pointDto: PointDto): Promise<UserPoint> {
     const userId = Number.parseInt(id);
-    const amount = pointDto.amount;
-    return { id: userId, point: amount, updateMillis: Date.now() };
+    const amount = new Point(pointDto.amount);
+    return this.pointService.charge(userId, amount);
   }
 
   /**

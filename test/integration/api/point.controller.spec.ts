@@ -1,3 +1,4 @@
+import { ValidationExceptionFilter } from '@/filters/validation-exception.filter';
 import * as request from 'supertest';
 
 import { INestApplication, ValidationPipe } from '@nestjs/common';
@@ -15,6 +16,7 @@ describe('PointController (Integration)', () => {
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalFilters(new ValidationExceptionFilter());
     await app.init();
   });
 
