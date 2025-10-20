@@ -1,5 +1,5 @@
 import { ValidationException } from '@/models/exception/validation.exception';
-import { Point } from '@/models/point';
+import { Point } from '@/models/point/point';
 
 export class PointWallet {
   private static readonly MAX_BALANCE = new Point(2_000_000);
