@@ -2,8 +2,9 @@ import { Point } from '@/models/point/point';
 import { RewardPolicy } from '@/models/reward/reward-policy';
 
 export class OnePercentRewardPolicy implements RewardPolicy {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  apply(_usedPoint: Point): Point {
-    return Point.ZERO;
+  private static readonly REWARD_RATE = 0.01;
+
+  apply(usedPoint: Point): Point {
+    return usedPoint.multiply(OnePercentRewardPolicy.REWARD_RATE);
   }
 }
