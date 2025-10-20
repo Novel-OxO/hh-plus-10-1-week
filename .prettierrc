@@ -1,0 +1,26 @@
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "printWidth": 120,
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"],
+  "importOrder": [
+    "<BUILTIN_MODULES>",
+    "",
+    "<THIRD_PARTY_MODULES>",
+    "",
+    "^@nestjs/(.*)$",
+    "",
+    "^@prisma/(.*)$",
+    "",
+    "^@/api/(.*)$",
+    "^@/application/(.*)$",
+    "^@/database/(.*)$",
+    "^@/models/(.*)$",
+    "^@/modules/(.*)$",
+    "",
+    "^[.]"
+  ],
+  "importOrderParserPlugins": ["typescript", "decorators-legacy"],
+  "importOrderTypeScriptVersion": "5.0.0"
+}
