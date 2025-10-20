@@ -20,7 +20,7 @@ describe('PointWallet', () => {
     it('초기 잔액 0원으로 지갑을 생성할 수 있다', () => {
       // given
       const userId = 1;
-      const initialBalance = new Point(0);
+      const initialBalance = Point.ZERO;
 
       // when
       const wallet = new PointWallet(userId, initialBalance);
@@ -102,7 +102,7 @@ describe('PointWallet', () => {
     it('0원을 입금하려 하면 예외가 발생한다', () => {
       // given
       const wallet = new PointWallet(1, new Point(1000));
-      const amount = new Point(0);
+      const amount = Point.ZERO;
 
       // when & then
       expect(() => wallet.deposit(amount)).toThrow(ValidationException);
@@ -162,7 +162,7 @@ describe('PointWallet', () => {
     it('0원을 출금하려 하면 예외가 발생한다', () => {
       // given
       const wallet = new PointWallet(1, new Point(1000));
-      const amount = new Point(0);
+      const amount = Point.ZERO;
 
       // when & then
       expect(() => wallet.withdraw(amount)).toThrow(ValidationException);

@@ -120,4 +120,87 @@ describe('Point', () => {
       expect(result.amount).toBe(15); // 1500 * 0.01 = 15
     });
   });
+
+  describe('비교', () => {
+    describe('isNegative', () => {
+      it.each([
+        { amount: -100, expected: true, description: '음수' },
+        { amount: 0, expected: false, description: '0' },
+        { amount: 100, expected: false, description: '양수' },
+      ])('$description이면 $expected를 반환한다', ({ amount, expected }) => {
+        const point = new Point(amount);
+        expect(point.isNegative()).toBe(expected);
+      });
+    });
+
+    describe('isPositive', () => {
+      it.each([
+        { amount: 100, expected: true, description: '양수' },
+        { amount: 0, expected: false, description: '0' },
+        { amount: -100, expected: false, description: '음수' },
+      ])('$description이면 $expected를 반환한다', ({ amount, expected }) => {
+        const point = new Point(amount);
+        expect(point.isPositive()).toBe(expected);
+      });
+    });
+
+    describe('isZero', () => {
+      it.each([
+        { amount: 0, expected: true, description: '0' },
+        { amount: 100, expected: false, description: '양수' },
+        { amount: -100, expected: false, description: '음수' },
+      ])('$description이면 $expected를 반환한다', ({ amount, expected }) => {
+        const point = new Point(amount);
+        expect(point.isZero()).toBe(expected);
+      });
+    });
+
+    describe('isGreaterThan', () => {
+      it.each([
+        { amount1: 1000, amount2: 500, expected: true, description: '다른 Point보다 크면' },
+        { amount1: 1000, amount2: 1000, expected: false, description: '다른 Point와 같으면' },
+        { amount1: 500, amount2: 1000, expected: false, description: '다른 Point보다 작으면' },
+      ])('$description $expected를 반환한다', ({ amount1, amount2, expected }) => {
+        const point1 = new Point(amount1);
+        const point2 = new Point(amount2);
+        expect(point1.isGreaterThan(point2)).toBe(expected);
+      });
+    });
+
+    describe('isLessThan', () => {
+      it.each([
+        { amount1: 500, amount2: 1000, expected: true, description: '다른 Point보다 작으면' },
+        { amount1: 1000, amount2: 1000, expected: false, description: '다른 Point와 같으면' },
+        { amount1: 1000, amount2: 500, expected: false, description: '다른 Point보다 크면' },
+      ])('$description $expected를 반환한다', ({ amount1, amount2, expected }) => {
+        const point1 = new Point(amount1);
+        const point2 = new Point(amount2);
+        expect(point1.isLessThan(point2)).toBe(expected);
+      });
+    });
+
+    describe('isGreaterThanOrEqual', () => {
+      it.each([
+        { amount1: 1000, amount2: 500, expected: true, description: '다른 Point보다 크면' },
+        { amount1: 1000, amount2: 1000, expected: true, description: '다른 Point와 같으면' },
+        { amount1: 500, amount2: 1000, expected: false, description: '다른 Point보다 작으면' },
+      ])('$description $expected를 반환한다', ({ amount1, amount2, expected }) => {
+        const point1 = new Point(amount1);
+        const point2 = new Point(amount2);
+        expect(point1.isGreaterThanOrEqual(point2)).toBe(expected);
+      });
+    });
+
+    describe('isLessThanOrEqual', () => {
+      it.each([
+        { amount1: 500, amount2: 1000, expected: true, description: '다른 Point보다 작으면' },
+        { amount1: 1000, amount2: 1000, expected: true, description: '다른 Point와 같으면' },
+        { amount1: 1000, amount2: 500, expected: false, description: '다른 Point보다 크면' },
+      ])('$description $expected를 반환한다', ({ amount1, amount2, expected }) => {
+        const point1 = new Point(amount1);
+        const point2 = new Point(amount2);
+        expect(point1.isLessThanOrEqual(point2)).toBe(expected);
+      });
+    });
+  });
 });
