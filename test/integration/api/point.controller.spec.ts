@@ -340,4 +340,92 @@ describe('PointController (Integration)', () => {
       });
     });
   });
+
+  describe('GET /point/:id/histories', () => {
+    describe('성공 케이스', () => {
+      it('특정 유저의 포인트 히스토리를 조회할 수 있다', async () => {
+        // given
+        const userId = 12;
+
+        // when
+        const response = await request(app.getHttpServer()).get(`/point/${userId}/histories`).expect(200);
+
+        // then
+        expect(Array.isArray(response.body)).toBe(true);
+      });
+
+      it('충전 후 히스토리를 조회하면 충전 기록이 있다', async () => {
+        // given
+        const userId = 13;
+        const chargeAmount = 1000;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        const response = await request(app.getHttpServer()).get(`/point/${userId}/histories`).expect(200);
+
+        // then
+        expect(response.body.length).toBeGreaterThan(0);
+        const chargeHistory = response.body.find((h) => h.type === 0); // TransactionType.CHARGE = 0
+        expect(chargeHistory).toBeDefined();
+        expect(chargeHistory.amount).toBe(chargeAmount);
+      });
+
+      it('사용 후 히스토리를 조회하면 사용 기록과 보상 기록이 있다', async () => {
+        // given
+        const userId = 14;
+        const chargeAmount = 10000;
+        const useAmount = 1000;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: chargeAmount }).expect(200);
+
+        await request(app.getHttpServer()).patch(`/point/${userId}/use`).send({ amount: useAmount }).expect(200);
+
+        const response = await request(app.getHttpServer()).get(`/point/${userId}/histories`).expect(200);
+
+        // then
+        expect(response.body.length).toBeGreaterThan(0);
+        const useHistory = response.body.find((h) => h.type === 1); // TransactionType.USE = 1
+        expect(useHistory).toBeDefined();
+        expect(useHistory.amount).toBe(useAmount);
+
+        const rewardHistory = response.body.find((h) => h.type === 2); // TransactionType.REWARD = 2
+        expect(rewardHistory).toBeDefined();
+        expect(rewardHistory.amount).toBe(10); // 1000 * 0.01 = 10
+      });
+
+      it('여러 번 충전/사용하면 모든 히스토리가 기록된다', async () => {
+        // given
+        const userId = 15;
+        const firstCharge = 5000;
+        const secondCharge = 3000;
+        const useAmount = 2000;
+
+        // when
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: firstCharge }).expect(200);
+
+        await request(app.getHttpServer()).patch(`/point/${userId}/charge`).send({ amount: secondCharge }).expect(200);
+
+        await request(app.getHttpServer()).patch(`/point/${userId}/use`).send({ amount: useAmount }).expect(200);
+
+        const response = await request(app.getHttpServer()).get(`/point/${userId}/histories`).expect(200);
+
+        // then
+        expect(response.body.length).toBeGreaterThanOrEqual(3); // 최소 충전 2번 + 사용 1번
+      });
+
+      it('히스토리가 없는 유저는 빈 배열을 반환한다', async () => {
+        // given
+        const userId = 999;
+
+        // when
+        const response = await request(app.getHttpServer()).get(`/point/${userId}/histories`).expect(200);
+
+        // then
+        expect(Array.isArray(response.body)).toBe(true);
+        expect(response.body.length).toBe(0);
+      });
+    });
+  });
 });
