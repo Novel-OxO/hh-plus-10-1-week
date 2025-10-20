@@ -12,6 +12,7 @@ export type UserPoint = {
 export enum TransactionType {
   CHARGE,
   USE,
+  REWARD,
 }
 
 export type PointHistory = {
