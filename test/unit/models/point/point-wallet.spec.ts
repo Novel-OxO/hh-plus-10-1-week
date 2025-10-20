@@ -1,6 +1,6 @@
 import { ValidationException } from '@/models/exception/validation.exception';
-import { Point } from '@/models/point';
-import { PointWallet } from '@/models/point-wallet';
+import { Point } from '@/models/point/point';
+import { PointWallet } from '@/models/point/point-wallet';
 
 describe('PointWallet', () => {
   describe('생성', () => {

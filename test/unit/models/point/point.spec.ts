@@ -1,5 +1,5 @@
 import { ValidationException } from '@/models/exception/validation.exception';
-import { Point } from '@/models/point';
+import { Point } from '@/models/point/point';
 
 describe('Point', () => {
   describe('생성', () => {
