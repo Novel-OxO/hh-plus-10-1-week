@@ -41,4 +41,13 @@ export class PointService {
 
     return updatedUserPoint;
   }
+
+  /**
+   * 포인트 조회
+   * @param userId 사용자 ID
+   * @returns 사용자 포인트 정보
+   */
+  async getPoint(userId: number): Promise<UserPoint> {
+    return this.userPointTable.selectById(userId);
+  }
 }
