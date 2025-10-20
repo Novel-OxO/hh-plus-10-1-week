@@ -4,7 +4,7 @@ import { PointHandler } from '@/application/point-handler';
 import { PointHistoryTable } from '@/database/pointhistory.table';
 import { UserPointTable } from '@/database/userpoint.table';
 import { ValidationException } from '@/models/exception/validation.exception';
-import { TransactionType, UserPoint } from '@/models/point.model';
+import { PointHistory, TransactionType, UserPoint } from '@/models/point.model';
 import { Point } from '@/models/point/point';
 import { PointWallet } from '@/models/point/point-wallet';
 import { OnePercentRewardPolicy } from '@/models/reward/one-percent-reward-policy';
@@ -85,5 +85,14 @@ export class PointService {
     }
 
     return updatedUserPoint;
+  }
+
+  /**
+   * 포인트 히스토리 조회
+   * @param userId 사용자 ID
+   * @returns 포인트 히스토리 목록
+   */
+  async getHistories(userId: number): Promise<PointHistory[]> {
+    return this.historyTable.selectAllByUserId(userId);
   }
 }
