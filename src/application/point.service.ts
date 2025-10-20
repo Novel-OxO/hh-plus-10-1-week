@@ -21,7 +21,7 @@ export class PointService {
    * 포인트 충전
    * @param userId 사용자 ID
    * @param amount 충전 금액
-   * @param rewardPolicy 보상 정책 (기본: OnePercentRewardPolicy)
+   * @param rewardPolicy 보상 정책 (기본: NoRewardPolicy)
    * @returns 충전 후 사용자 포인트 정보
    */
   async charge(userId: number, amount: Point, rewardPolicy?: RewardPolicy): Promise<UserPoint> {
